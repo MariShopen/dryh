@@ -1,104 +1,141 @@
 "use client";
-import React, { useState } from "react";
 
-const DiceRollCalculator = () => {
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dice1Icon as Dice } from "lucide-react";
+
+type DiceType = "Discipline" | "Exhaustion" | "Madness" | "Pain";
+
+interface DiceRolls {
+  [key: string]: number[];
+}
+
+interface Results {
+  successes: number;
+  dominant: DiceType | "";
+  rolls: DiceRolls;
+}
+
+export default function Component() {
   const [discipline, setDiscipline] = useState(0);
   const [exhaustion, setExhaustion] = useState(0);
   const [madness, setMadness] = useState(0);
   const [pain, setPain] = useState(0);
-  const [results, setResults] = useState({ successes: 0, dominant: "" });
-  const [intermediateResults, setIntermediateResults] = useState({});
+  const [results, setResults] = useState<Results>({
+    successes: 0,
+    dominant: "",
+    rolls: {},
+  });
 
-  const rollDice = (numDice: any) =>
-    Array.from({ length: numDice }, () => Math.ceil(Math.random() * 6));
-
-  const calculate = () => {
-    const disciplineRolls = rollDice(discipline);
-    const exhaustionRolls = rollDice(exhaustion);
-    const madnessRolls = rollDice(madness);
-    const painRolls = rollDice(pain);
-
-    const allRolls = {
-      discipline: disciplineRolls,
-      exhaustion: exhaustionRolls,
-      madness: madnessRolls,
-      pain: painRolls,
-    };
-
-    setIntermediateResults(allRolls);
-
-    const successes = Object.values(allRolls)
-      .flat()
-      .filter((die) => die <= 3).length;
-
-    const strengths = Object.entries(allRolls).map(([key, rolls]) => ({
-      type: key,
-      max: Math.max(...rolls, 0),
-    }));
-
-    strengths.sort((a, b) => b.max - a.max);
-    const dominant = strengths[0].type;
-
-    setResults({ successes, dominant });
+  const rollDice = (count: number): number[] => {
+    return Array.from(
+      { length: count },
+      () => Math.floor(Math.random() * 6) + 1
+    );
   };
 
+  const calculate = () => {
+    const rolls: DiceRolls = {
+      Discipline: rollDice(discipline),
+      Exhaustion: rollDice(exhaustion),
+      Madness: rollDice(madness),
+      Pain: rollDice(pain),
+    };
+
+    const successes = Object.values(rolls)
+      .flat()
+      .filter((roll) => roll > 3).length;
+    const dominantPool = Object.entries(rolls).reduce((a, b) =>
+      a[1].length > b[1].length ? a : b
+    )[0] as DiceType;
+
+    setResults({ successes, dominant: dominantPool, rolls });
+  };
+
+  const diceInputs: [
+    DiceType,
+    number,
+    React.Dispatch<React.SetStateAction<number>>
+  ][] = [
+    ["Discipline", discipline, setDiscipline],
+    ["Exhaustion", exhaustion, setExhaustion],
+    ["Madness", madness, setMadness],
+    ["Pain", pain, setPain],
+  ];
+
   return (
-    <div>
-      <h1>Don't Rest Your Head - Dice Roller</h1>
-      <div>
-        <label>
-          Discipline Dice:
-          <input
-            type="number"
-            value={discipline}
-            onChange={(e) => setDiscipline(+e.target.value)}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          Exhaustion Dice:
-          <input
-            type="number"
-            value={exhaustion}
-            onChange={(e) => setExhaustion(+e.target.value)}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          Madness Dice:
-          <input
-            type="number"
-            value={madness}
-            onChange={(e) => setMadness(+e.target.value)}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          Pain Dice:
-          <input
-            type="number"
-            value={pain}
-            onChange={(e) => setPain(+e.target.value)}
-          />
-        </label>
-      </div>
-      <button onClick={calculate}>Roll Dice</button>
-      <h2>Results</h2>
-      <p>Successes: {results.successes}</p>
-      <p>Dominant Pool: {results.dominant}</p>
-      <h2>Intermediate Results</h2>
-      <div>
-        {Object.entries<number[]>(intermediateResults).map(([key, rolls]) => (
-          <div key={key}>
-            <strong>{key} Rolls:</strong> {rolls.join(", ")}
+    <div className="container mx-auto p-4 min-h-screen flex items-center justify-center">
+      <Card className="w-full max-w-4xl">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">
+            Don't Rest Your Head - Dice Roller
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              {diceInputs.map(([type, value, setter]) => (
+                <div key={type} className="grid grid-cols-2 items-center gap-4">
+                  <Label htmlFor={type.toLowerCase()}>{type} Dice</Label>
+                  <Input
+                    id={type.toLowerCase()}
+                    type="number"
+                    value={value}
+                    onChange={(e) => setter(Math.max(0, +e.target.value))}
+                    min={0}
+                  />
+                </div>
+              ))}
+            </div>
+            <Card className="bg-muted">
+              <CardHeader>
+                <CardTitle className="text-xl">Results</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p>
+                  <strong>Successes:</strong> {results.successes}
+                </p>
+                <p>
+                  <strong>Dominant Pool:</strong> {results.dominant}
+                </p>
+                <div className="mt-4">
+                  <h4 className="font-semibold mb-2">Dice Rolls</h4>
+                  {Object.entries(results.rolls).map(([type, rolls]) => (
+                    <div key={type} className="flex items-center space-x-2">
+                      <span className="font-medium">{type}:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {rolls.map((roll, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center justify-center w-6 h-6 bg-primary text-primary-foreground rounded-full text-sm font-semibold"
+                          >
+                            {roll}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        ))}
-      </div>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <Button onClick={calculate} size="lg" className="w-full md:w-auto">
+            <Dice className="mr-2 h-5 w-5" />
+            Roll Dice
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
-};
-
-export default DiceRollCalculator;
+}
