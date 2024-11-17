@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,64 +12,74 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dice1Icon as Dice } from "lucide-react";
 
-type DiceType = "Discipline" | "Exhaustion" | "Madness" | "Pain";
-
-interface DiceRolls {
-  [key: string]: number[];
-}
-
-interface Results {
-  successes: number;
-  dominant: DiceType | "";
-  rolls: DiceRolls;
-}
-
-export default function Component() {
+const DiceRollCalculator = () => {
   const [discipline, setDiscipline] = useState(0);
-  const [exhaustion, setExhaustion] = useState(0);
   const [madness, setMadness] = useState(0);
+  const [exhaustion, setExhaustion] = useState(0);
   const [pain, setPain] = useState(0);
-  const [results, setResults] = useState<Results>({
-    successes: 0,
-    dominant: "",
-    rolls: {},
-  });
+  const [results, setResults] = useState({ successes: 0, dominant: "" });
+  const [intermediateResults, setIntermediateResults] = useState({});
 
-  const rollDice = (count: number): number[] => {
-    return Array.from(
-      { length: count },
-      () => Math.floor(Math.random() * 6) + 1
+  const rollDice = (numDice: any) =>
+    Array.from({ length: numDice }, () => Math.ceil(Math.random() * 6)).sort(
+      (a, b) => b - a
     );
+
+  const calculateDominant = (allRolls: any) => {
+    const entries = Object.entries(allRolls);
+
+    entries.sort((a, b) => {
+      const [keyA, rollsA] = a;
+      const [keyB, rollsB] = b;
+
+      const maxA = Math.max(...rollsA, 0);
+      const maxB = Math.max(...rollsB, 0);
+
+      if (maxA !== maxB) return maxB - maxA;
+
+      const countA = rollsA.filter((roll) => roll === maxA).length;
+      const countB = rollsB.filter((roll) => roll === maxB).length;
+
+      if (countA !== countB) return countB - countA;
+
+      const sortedA = rollsA.sort((x, y) => y - x);
+      const sortedB = rollsB.sort((x, y) => y - x);
+
+      for (let i = 0; i < Math.max(sortedA.length, sortedB.length); i++) {
+        if (sortedA[i] !== sortedB[i])
+          return (sortedB[i] || 0) - (sortedA[i] || 0);
+      }
+
+      const hierarchy = ["discipline", "madness", "exhaustion", "pain"];
+      return hierarchy.indexOf(keyA) - hierarchy.indexOf(keyB);
+    });
+
+    return entries[0][0];
   };
 
   const calculate = () => {
-    const rolls: DiceRolls = {
-      Discipline: rollDice(discipline),
-      Exhaustion: rollDice(exhaustion),
-      Madness: rollDice(madness),
-      Pain: rollDice(pain),
+    const disciplineRolls = rollDice(discipline);
+    const madnessRolls = rollDice(madness);
+    const exhaustionRolls = rollDice(exhaustion);
+    const painRolls = rollDice(pain);
+
+    const allRolls = {
+      discipline: disciplineRolls,
+      madness: madnessRolls,
+      exhaustion: exhaustionRolls,
+      pain: painRolls,
     };
 
-    const successes = Object.values(rolls)
+    setIntermediateResults(allRolls);
+
+    const successes = Object.values(allRolls)
       .flat()
-      .filter((roll) => roll > 3).length;
-    const dominantPool = Object.entries(rolls).reduce((a, b) =>
-      a[1].length > b[1].length ? a : b
-    )[0] as DiceType;
+      .filter((die) => die <= 3).length;
 
-    setResults({ successes, dominant: dominantPool, rolls });
+    const dominant = calculateDominant(allRolls);
+
+    setResults({ successes, dominant });
   };
-
-  const diceInputs: [
-    DiceType,
-    number,
-    React.Dispatch<React.SetStateAction<number>>
-  ][] = [
-    ["Discipline", discipline, setDiscipline],
-    ["Exhaustion", exhaustion, setExhaustion],
-    ["Madness", madness, setMadness],
-    ["Pain", pain, setPain],
-  ];
 
   return (
     <div className="container mx-auto p-4 min-h-screen flex items-center justify-center">
@@ -83,11 +92,29 @@ export default function Component() {
         <CardContent>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
-              {diceInputs.map(([type, value, setter]) => (
-                <div key={type} className="grid grid-cols-2 items-center gap-4">
-                  <Label htmlFor={type.toLowerCase()}>{type} Dice</Label>
+              {[
+                {
+                  label: "Дисциплина",
+                  value: discipline,
+                  setter: setDiscipline,
+                },
+                { label: "Безумие", value: madness, setter: setMadness },
+                {
+                  label: "Истощение",
+                  value: exhaustion,
+                  setter: setExhaustion,
+                },
+                { label: "Боль", value: pain, setter: setPain },
+              ].map(({ label, value, setter }) => (
+                <div
+                  key={label}
+                  className="grid grid-cols-2 items-center gap-4"
+                >
+                  <Label htmlFor={label.toLowerCase().replace(" ", "-")}>
+                    {label}
+                  </Label>
                   <Input
-                    id={type.toLowerCase()}
+                    id={label.toLowerCase().replace(" ", "-")}
                     type="number"
                     value={value}
                     onChange={(e) => setter(Math.max(0, +e.target.value))}
@@ -98,25 +125,29 @@ export default function Component() {
             </div>
             <Card className="bg-muted">
               <CardHeader>
-                <CardTitle className="text-xl">Results</CardTitle>
+                <CardTitle className="text-xl">Результаты</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <p>
-                  <strong>Successes:</strong> {results.successes}
+                  <strong>Успехи:</strong> {results.successes}
                 </p>
                 <p>
-                  <strong>Dominant Pool:</strong> {results.dominant}
+                  <strong>Доминанта:</strong> {results.dominant}
                 </p>
                 <div className="mt-4">
-                  <h4 className="font-semibold mb-2">Dice Rolls</h4>
-                  {Object.entries(results.rolls).map(([type, rolls]) => (
-                    <div key={type} className="flex items-center space-x-2">
-                      <span className="font-medium">{type}:</span>
+                  <h4 className="font-semibold mb-2">Значения кубиков</h4>
+                  {Object.entries(intermediateResults).map(([key, rolls]) => (
+                    <div key={key} className="flex items-center space-x-2">
+                      <span className="font-medium capitalize">{key}:</span>
                       <div className="flex flex-wrap gap-1">
-                        {rolls.map((roll, index) => (
+                        {(rolls as number[]).map((roll, index) => (
                           <span
                             key={index}
-                            className="inline-flex items-center justify-center w-6 h-6 bg-primary text-primary-foreground rounded-full text-sm font-semibold"
+                            className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-semibold ${
+                              roll <= 3
+                                ? "bg-orange-700 text-white"
+                                : "bg-primary text-primary-foreground"
+                            }`}
                           >
                             {roll}
                           </span>
@@ -138,4 +169,6 @@ export default function Component() {
       </Card>
     </div>
   );
-}
+};
+
+export default DiceRollCalculator;
