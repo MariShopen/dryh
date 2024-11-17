@@ -8,6 +8,7 @@
     "web:start": "next start",
     "web:lint": "next lint",
     "api:dev": "tsx --watch server/index.ts",
+    "api:start": "tsx server/index.ts",
     "build": "npm run web:build"
   },
   "dependencies": {
@@ -15,7 +16,6 @@
     "@radix-ui/react-slot": "^1.1.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "fastify": "^5.1.0",
     "lucide-react": "^0.460.0",
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",

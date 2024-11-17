@@ -5,7 +5,7 @@ const httpServer = http.createServer();
 
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.WEB_URL ?? 'http://localhost:3000',
     methods: ["GET", "POST"],
     credentials: true,
   },
