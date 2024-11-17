@@ -1,10 +1,9 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
 interface IMsgDataTypes {
-  msg: String;
-  time: String;
+  msg: string;
 }
 
 const socket = io("http://localhost:3001");
@@ -18,10 +17,6 @@ const ChatPage = () => {
     if (currentMsg !== "") {
       const msgData: IMsgDataTypes = {
         msg: currentMsg,
-        time:
-          new Date(Date.now()).getHours() +
-          ":" +
-          new Date(Date.now()).getMinutes(),
       };
       socket.emit("send_msg", msgData);
       setCurrentMsg("");
@@ -41,16 +36,11 @@ const ChatPage = () => {
   return (
     <div>
       <div>
-        <div style={{ marginBottom: "1rem" }}>
-        </div>
+        <div style={{ marginBottom: "1rem" }}></div>
         <div>
-          {chat.map(({ msg, time }, key) => (
-            <div
-              key={key}
-            >
-              <h3>
-                {msg}
-              </h3>
+          {chat.map(({ msg }, key) => (
+            <div key={key}>
+              <h3>{msg}</h3>
             </div>
           ))}
         </div>

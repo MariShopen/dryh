@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,51 +11,40 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dice1Icon as Dice } from "lucide-react";
+import ResultCard from "@/components/resultCard";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:3001");
+
+interface IMsgDataTypes {
+  discipline: number[];
+  exhaustion: number[];
+  madness: number[];
+  pain: number[];
+}
 
 const DiceRollCalculator = () => {
-  const [discipline, setDiscipline] = useState(0);
-  const [madness, setMadness] = useState(0);
-  const [exhaustion, setExhaustion] = useState(0);
-  const [pain, setPain] = useState(0);
-  const [results, setResults] = useState({ successes: 0, dominant: "" });
-  const [intermediateResults, setIntermediateResults] = useState({});
+  const [discipline, setDiscipline] = useState<number>(0);
+  const [exhaustion, setExhaustion] = useState<number>(0);
+  const [madness, setMadness] = useState<number>(0);
+  const [pain, setPain] = useState<number>(0);
+
+  const [chat, setChat] = useState<IMsgDataTypes[]>([]);
+
+  useEffect(() => {
+    socket.on("receive_msg", (data: IMsgDataTypes) => {
+      setChat((pre) => [...pre, data]);
+    });
+
+    return () => {
+      socket.off("receive_msg");
+    };
+  }, []);
 
   const rollDice = (numDice: number) =>
     Array.from({ length: numDice }, () => Math.ceil(Math.random() * 6)).sort(
       (a, b) => b - a
     );
-
-  const calculateDominant = (allRolls: { [key: string]: number[] }) => {
-    const entries = Object.entries(allRolls);
-
-    entries.sort((a, b) => {
-      const [keyA, rollsA] = a;
-      const [keyB, rollsB] = b;
-
-      const maxA = Math.max(...rollsA, 0);
-      const maxB = Math.max(...rollsB, 0);
-
-      if (maxA !== maxB) return maxB - maxA;
-
-      const countA = rollsA.filter((roll) => roll === maxA).length;
-      const countB = rollsB.filter((roll) => roll === maxB).length;
-
-      if (countA !== countB) return countB - countA;
-
-      const sortedA = rollsA.sort((x, y) => y - x);
-      const sortedB = rollsB.sort((x, y) => y - x);
-
-      for (let i = 0; i < Math.max(sortedA.length, sortedB.length); i++) {
-        if (sortedA[i] !== sortedB[i])
-          return (sortedB[i] || 0) - (sortedA[i] || 0);
-      }
-
-      const hierarchy = ["discipline", "madness", "exhaustion", "pain"];
-      return hierarchy.indexOf(keyA) - hierarchy.indexOf(keyB);
-    });
-
-    return entries[0][0];
-  };
 
   const calculate = () => {
     const disciplineRolls = rollDice(discipline);
@@ -70,15 +59,7 @@ const DiceRollCalculator = () => {
       pain: painRolls,
     };
 
-    setIntermediateResults(allRolls);
-
-    const successes = Object.values(allRolls)
-      .flat()
-      .filter((die) => die <= 3).length;
-
-    const dominant = calculateDominant(allRolls);
-
-    setResults({ successes, dominant });
+    socket.emit("send_msg", allRolls);
   };
 
   return (
@@ -123,41 +104,11 @@ const DiceRollCalculator = () => {
                 </div>
               ))}
             </div>
-            <Card className="bg-muted">
-              <CardHeader>
-                <CardTitle className="text-xl">Результаты</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p>
-                  <strong>Успехи:</strong> {results.successes}
-                </p>
-                <p>
-                  <strong>Доминанта:</strong> {results.dominant}
-                </p>
-                <div className="mt-4">
-                  <h4 className="font-semibold mb-2">Значения кубиков:</h4>
-                  {Object.entries(intermediateResults).map(([key, rolls]) => (
-                    <div key={key} className="flex items-center space-x-2">
-                      <span className="font-medium capitalize">{key}:</span>
-                      <div className="flex flex-wrap gap-1">
-                        {(rolls as number[]).map((roll, index) => (
-                          <span
-                            key={index}
-                            className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-semibold ${
-                              roll <= 3
-                                ? "bg-orange-700 text-white"
-                                : "bg-primary text-primary-foreground"
-                            }`}
-                          >
-                            {roll}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col gap-4">
+              {chat.map((rolls, i) => (
+                <ResultCard key={i} rolls={rolls} />
+              ))}
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-center">
