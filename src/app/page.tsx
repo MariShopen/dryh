@@ -20,12 +20,12 @@ const DiceRollCalculator = () => {
   const [results, setResults] = useState({ successes: 0, dominant: "" });
   const [intermediateResults, setIntermediateResults] = useState({});
 
-  const rollDice = (numDice: any) =>
+  const rollDice = (numDice: number) =>
     Array.from({ length: numDice }, () => Math.ceil(Math.random() * 6)).sort(
       (a, b) => b - a
     );
 
-  const calculateDominant = (allRolls: any) => {
+  const calculateDominant = (allRolls: { [key: string]: number[] }) => {
     const entries = Object.entries(allRolls);
 
     entries.sort((a, b) => {
@@ -86,7 +86,7 @@ const DiceRollCalculator = () => {
       <Card className="w-full max-w-4xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
-            Don't Rest Your Head - Dice Roller
+            Don&apos;t Rest Your Head - Dice Roller
           </CardTitle>
         </CardHeader>
         <CardContent>
