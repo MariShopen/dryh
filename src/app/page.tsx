@@ -135,7 +135,7 @@ const DiceRollCalculator = () => {
                   <strong>Доминанта:</strong> {results.dominant}
                 </p>
                 <div className="mt-4">
-                  <h4 className="font-semibold mb-2">Значения кубиков</h4>
+                  <h4 className="font-semibold mb-2">Значения кубиков:</h4>
                   {Object.entries(intermediateResults).map(([key, rolls]) => (
                     <div key={key} className="flex items-center space-x-2">
                       <span className="font-medium capitalize">{key}:</span>

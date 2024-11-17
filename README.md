@@ -1,5 +1,5 @@
 # Don't Rest Your Head - Dice Roller
-- Deployed version -> 
+- Deployed version -> https://dryh-mari-ss-projects.vercel.app/
 
 ## Dvelopment
 
