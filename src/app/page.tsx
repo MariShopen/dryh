@@ -63,7 +63,7 @@ const DiceRollCalculator = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 min-h-screen flex items-center justify-center">
+    <div className="container mx-auto p-4 min-h-screen flex items-top justify-center">
       <Card className="w-full max-w-4xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
@@ -86,7 +86,7 @@ const DiceRollCalculator = () => {
                   setter: setExhaustion,
                 },
                 { label: "Боль", value: pain, setter: setPain },
-              ].map(({ label, value, setter }) => (
+              ].map(({ label, setter }) => (
                 <div
                   key={label}
                   className="grid grid-cols-2 items-center gap-4"
@@ -97,26 +97,32 @@ const DiceRollCalculator = () => {
                   <Input
                     id={label.toLowerCase().replace(" ", "-")}
                     type="number"
-                    value={value}
                     onChange={(e) => setter(Math.max(0, +e.target.value))}
-                    min={0}
                   />
                 </div>
               ))}
+              <div className="flex justify-center">
+                <Button
+                  onClick={calculate}
+                  size="lg"
+                  className="w-full md:w-auto mt-6"
+                >
+                  <Dice className="mr-2 h-5 w-5" />
+                  Roll Dice
+                </Button>
+              </div>
             </div>
             <div className="flex flex-col gap-4">
-              {chat.map((rolls, i) => (
-                <ResultCard key={i} rolls={rolls} />
-              ))}
+              {chat
+                .slice()
+                .reverse()
+                .map((rolls, i) => (
+                  <ResultCard key={i} rolls={rolls} />
+                ))}
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <Button onClick={calculate} size="lg" className="w-full md:w-auto">
-            <Dice className="mr-2 h-5 w-5" />
-            Roll Dice
-          </Button>
-        </CardFooter>
+        <CardFooter className="flex justify-center"></CardFooter>
       </Card>
     </div>
   );

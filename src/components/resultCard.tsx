@@ -63,8 +63,8 @@ const ResultCard = ({ rolls }: ResutlCardProps) => {
       </CardHeader>
       <CardContent className="space-y-2">
         <div>
-          <div>Player Successes: {playerSuccesses}</div>
-          <div>Master Successes: {masterSuccesses}</div>
+          <div>Успехи Игрока: {playerSuccesses}</div>
+          <div>Успехи Мастера: {masterSuccesses}</div>
         </div>
         <div>
           <strong>Доминанта:</strong> {dominant}
