@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type ResutlCardProps = {
+  name: string;
   rolls: {
     discipline: number[];
     exhaustion: number[];
@@ -13,7 +14,7 @@ type Entries<T> = {
   [K in keyof T]: [K, T[K]];
 }[keyof T][];
 
-const ResultCard = ({ rolls }: ResutlCardProps) => {
+const ResultCard = ({ name, rolls }: ResutlCardProps) => {
   const playerSuccesses = [
     ...rolls.discipline,
     ...rolls.exhaustion,
@@ -62,6 +63,9 @@ const ResultCard = ({ rolls }: ResutlCardProps) => {
         <CardTitle className="text-xl">Результаты</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
+        <div>
+          <div>Имя игрока: {name}</div>
+        </div>
         <div>
           <div>Успехи Игрока: {playerSuccesses}</div>
           <div>Успехи Мастера: {masterSuccesses}</div>

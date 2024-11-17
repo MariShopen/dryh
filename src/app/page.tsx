@@ -13,14 +13,19 @@ import { Label } from "@/components/ui/label";
 import { Dice1Icon as Dice } from "lucide-react";
 import ResultCard from "@/components/resultCard";
 import { io } from "socket.io-client";
+import { nanoid } from "nanoid";
 
 const socket = io(process.env.NEXT_PUBLIC_API_URL);
 
 interface IMsgDataTypes {
-  discipline: number[];
-  exhaustion: number[];
-  madness: number[];
-  pain: number[];
+  uuid: string;
+  name: string;
+  rolls: {
+    discipline: number[];
+    exhaustion: number[];
+    madness: number[];
+    pain: number[];
+  };
 }
 
 const DiceRollCalculator = () => {
@@ -28,7 +33,7 @@ const DiceRollCalculator = () => {
   const [exhaustion, setExhaustion] = useState<number>(0);
   const [madness, setMadness] = useState<number>(0);
   const [pain, setPain] = useState<number>(0);
-
+  const [name, setName] = useState<string>("");
   const [chat, setChat] = useState<IMsgDataTypes[]>([]);
 
   useEffect(() => {
@@ -53,11 +58,15 @@ const DiceRollCalculator = () => {
     const painRolls = rollDice(pain);
 
     const allRolls = {
-      discipline: disciplineRolls,
-      madness: madnessRolls,
-      exhaustion: exhaustionRolls,
-      pain: painRolls,
-    };
+      uuid: nanoid(),
+      name: name,
+      rolls: {
+        discipline: disciplineRolls,
+        madness: madnessRolls,
+        exhaustion: exhaustionRolls,
+        pain: painRolls,
+      },
+    } satisfies IMsgDataTypes;
 
     socket.emit("send_msg", allRolls);
   };
@@ -73,6 +82,10 @@ const DiceRollCalculator = () => {
         <CardContent>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
+              <div className="grid grid-cols-2 items-center gap-4">
+                <Label htmlFor="name">Имя игрока</Label>
+                <Input id="name" onChange={(e) => setName(e.target.value)} />
+              </div>
               {[
                 {
                   label: "Дисциплина",
@@ -116,8 +129,12 @@ const DiceRollCalculator = () => {
               {chat
                 .slice()
                 .reverse()
-                .map((rolls, i) => (
-                  <ResultCard key={i} rolls={rolls} />
+                .map((message) => (
+                  <ResultCard
+                    key={message.uuid}
+                    name={message.name}
+                    rolls={message.rolls}
+                  />
                 ))}
             </div>
           </div>
