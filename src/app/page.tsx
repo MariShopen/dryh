@@ -14,6 +14,7 @@ import { Dice1Icon as Dice } from "lucide-react";
 import ResultCard from "@/components/resultCard";
 import { io } from "socket.io-client";
 import { nanoid } from "nanoid";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const socket = io(process.env.NEXT_PUBLIC_API_URL);
 
@@ -85,6 +86,30 @@ const DiceRollCalculator = () => {
               <div className="grid grid-cols-2 items-center gap-4">
                 <Label htmlFor="name">Имя игрока</Label>
                 <Input id="name" onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 items-center gap-4">
+                <Label htmlFor="PlayerExhaustion">Навык истощения</Label>
+                <Input id="PlayerExhaustion" />
+              </div>
+              <div className="grid grid-cols-2 items-center gap-4">
+                <Label htmlFor="PlayerMadness">Навык Безумия</Label>
+                <Input id="PlayerMadness" />
+              </div>
+              <div className="grid grid-cols-2 items-center gap-4">
+                <Label htmlFor="Bei">Бей</Label>
+                <div className="flex flex-row gap-4">
+                  <Checkbox />
+                  <Checkbox />
+                  <Checkbox />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 items-center gap-4">
+                <Label htmlFor="Begi">Беги</Label>
+                <div className="flex flex-row gap-4">
+                  <Checkbox />
+                  <Checkbox />
+                  <Checkbox />
+                </div>
               </div>
               {[
                 {
