@@ -15,6 +15,7 @@ import ResultCard from "@/components/resultCard";
 import { io } from "socket.io-client";
 import { nanoid } from "nanoid";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 
 const socket = io(process.env.NEXT_PUBLIC_API_URL);
 
@@ -89,11 +90,11 @@ const DiceRollCalculator = () => {
               </div>
               <div className="grid grid-cols-2 items-center gap-4">
                 <Label htmlFor="PlayerExhaustion">Навык истощения</Label>
-                <Input id="PlayerExhaustion" />
+                <Textarea id="PlayerExhaustion" />
               </div>
               <div className="grid grid-cols-2 items-center gap-4">
                 <Label htmlFor="PlayerMadness">Навык Безумия</Label>
-                <Input id="PlayerMadness" />
+                <Textarea id="PlayerMadness" />
               </div>
               <div className="grid grid-cols-2 items-center gap-4">
                 <Label htmlFor="Bei">Бей</Label>
